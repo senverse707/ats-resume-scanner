@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pdfplumber
+spacy
+scikit-learn
+sqlalchemy
+pymysql
+passlib[bcrypt]
+bcrypt==4.0.1
+python-jose[cryptography]
+python-dotenv
+email-validator
