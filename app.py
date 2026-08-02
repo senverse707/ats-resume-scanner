@@ -16,7 +16,7 @@ import os
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from database import Base, engine, get_db
@@ -37,10 +37,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# HTTPBearer just expects a raw token pasted in — matches our JSON-based
+# /auth/login (as opposed to OAuth2PasswordBearer, which expects OAuth2's
+# form-encoded username/password login flow that we don't implement).
+bearer_scheme = HTTPBearer()
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> User:
+    token = credentials.credentials
     payload = decode_access_token(token)
     if payload is None or "sub" not in payload:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
